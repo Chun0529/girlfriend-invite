@@ -1,13 +1,8 @@
 (() => {
-  const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
-
   const state = {
     step: 1,
     dodgeCount: 0,
     yesScale: 1,
-    selectedDate: nextWeekend(),
-    viewYear: null,
-    viewMonth: null,
     lastDodge: 0,
     notifiedComplete: false,
   };
@@ -18,8 +13,6 @@
     steps: [...document.querySelectorAll(".step")],
     yes: document.getElementById("btn-yes"),
     no: document.getElementById("btn-no"),
-    dateBtn: document.getElementById("btn-date"),
-    calendar: document.getElementById("calendar"),
     letter: document.getElementById("letter"),
     replay: document.getElementById("btn-replay"),
     whatsapp: document.getElementById("btn-whatsapp"),
@@ -54,34 +47,6 @@
         ...payload,
       }),
     }).catch(() => {});
-  }
-
-  function today() {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-
-  function nextWeekend() {
-    const d = today();
-    const untilSaturday = (6 - d.getDay() + 7) % 7;
-    d.setDate(d.getDate() + untilSaturday);
-    return d;
-  }
-
-  function sameDay(a, b) {
-    return (
-      a &&
-      b &&
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
-    );
-  }
-
-  function formatDate(date) {
-    const week = WEEKDAYS[date.getDay()];
-    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 星期${week}`;
   }
 
   function viewport() {
@@ -242,135 +207,47 @@
     requestAnimationFrame(tick);
   }
 
-  function renderCalendar() {
-    const now = today();
-    if (state.viewYear == null) {
-      state.viewYear = state.selectedDate.getFullYear();
-      state.viewMonth = state.selectedDate.getMonth();
-    }
-
-    const year = state.viewYear;
-    const month = state.viewMonth;
-    const first = new Date(year, month, 1);
-    const startWeekday = first.getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const prevDisabled = year === now.getFullYear() && month === now.getMonth();
-
-    const cells = [];
-    for (let i = 0; i < startWeekday; i += 1) cells.push(null);
-    for (let day = 1; day <= daysInMonth; day += 1) cells.push(new Date(year, month, day));
-    while (cells.length % 7 !== 0) cells.push(null);
-
-    els.calendar.innerHTML = `
-      <div class="cal-head">
-        <button type="button" class="cal-nav" id="cal-prev" ${prevDisabled ? "disabled" : ""} aria-label="上個月">‹</button>
-        <strong>${year}年${month + 1}月</strong>
-        <button type="button" class="cal-nav" id="cal-next" aria-label="下個月">›</button>
-      </div>
-      <div class="cal-week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>
-      <div class="cal-grid">
-        ${cells
-          .map((date) => {
-            if (!date) return `<span class="is-empty"></span>`;
-            const disabled = date < now;
-            const selected = sameDay(date, state.selectedDate);
-            const isToday = sameDay(date, now);
-            const stamp = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-            const cls = [selected ? "is-selected" : "", isToday ? "is-today" : ""].filter(Boolean).join(" ");
-            return `<button type="button" data-date="${stamp}" ${disabled ? "disabled" : ""} class="${cls}">${date.getDate()}</button>`;
-          })
-          .join("")}
-      </div>
-    `;
-
-    els.calendar.querySelector("#cal-prev").addEventListener("click", () => {
-      if (month === 0) {
-        state.viewYear -= 1;
-        state.viewMonth = 11;
-      } else {
-        state.viewMonth -= 1;
-      }
-      renderCalendar();
-    });
-    els.calendar.querySelector("#cal-next").addEventListener("click", () => {
-      if (month === 11) {
-        state.viewYear += 1;
-        state.viewMonth = 0;
-      } else {
-        state.viewMonth += 1;
-      }
-      renderCalendar();
-    });
-    els.calendar.querySelectorAll("[data-date]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const [y, m, d] = btn.dataset.date.split("-").map(Number);
-        state.selectedDate = new Date(y, m, d);
-        els.dateBtn.disabled = false;
-        renderCalendar();
-      });
-    });
-
-    els.dateBtn.disabled = !state.selectedDate;
-  }
-
   function renderLetter() {
     const { you, me } = config();
-    const dateText = formatDate(state.selectedDate);
     els.letter.innerHTML = `
       <p>親愛的${you}：</p>
       <p>其實這句話我在心裡排練了很久。點進這個小網站的時候，心跳大概比那個「No」逃跑的速度還快。</p>
-      <p>謝謝${you}願意說「好哦」。那就從這一天開始，讓我有資格把${you}放在最靠近的位置——不是朋友旁邊的位子，是女朋友的位子。</p>
-      <p class="letter-date">${dateText}</p>
+      <p>謝謝${you}願意說「好哦」。從今天起，讓我有資格把${you}放在最靠近的位置——不是朋友旁邊的位子，是女朋友的位子。</p>
       <p>不一定要很華麗。只要${you}在，普通的夜晚也會發光。剩下的話，想當面慢慢說。</p>
       <p class="sign">—— 喜歡${you}的${me}</p>
     `;
-    updateWhatsApp(dateText);
+    updateWhatsApp();
   }
 
-  function updateWhatsApp(dateText) {
+  function updateWhatsApp() {
     const { whatsapp, you, me } = config();
     const number = String(whatsapp || "85264891242").replace(/\D/g, "");
-    const text = `我答應做${me}的女朋友了 ♥\n約會日期：${dateText}\n—— ${you}`;
+    const text = `我答應做${me}的女朋友了 ♥\n—— ${you}`;
     els.whatsapp.href = `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
   }
 
   function notifyComplete() {
     if (state.notifiedComplete) return;
     state.notifiedComplete = true;
-    const dateText = formatDate(state.selectedDate);
     notify({
-      subject: `她說好哦了：${dateText}`,
+      subject: "她說好哦了 💕",
       name: "表白網站回覆",
-      date: dateText,
       dodge_count: String(state.dodgeCount),
       whatsapp: "64891242",
-      message: `對方答應做女朋友了。\n約會日期：${dateText}\nNo 逃跑次數：${state.dodgeCount}\n可用 WhatsApp 聯絡：+852 64891242`,
+      message: `對方答應做女朋友了。\nNo 逃跑次數：${state.dodgeCount}\n可用 WhatsApp 聯絡：+852 64891242`,
     });
   }
 
-  function goDateStep() {
+  function goLetterStep() {
     burstConfetti();
     resetNoButton(false);
-    if (!state.selectedDate) state.selectedDate = nextWeekend();
-    state.viewYear = state.selectedDate.getFullYear();
-    state.viewMonth = state.selectedDate.getMonth();
-    renderCalendar();
+    notifyComplete();
+    renderLetter();
     setStep(2);
   }
 
-  function goLetterStep() {
-    if (!state.selectedDate) return;
-    notifyComplete();
-    renderLetter();
-    setStep(3);
-  }
-
   function resetAll() {
-    state.selectedDate = nextWeekend();
-    state.viewYear = state.selectedDate.getFullYear();
-    state.viewMonth = state.selectedDate.getMonth();
     resetNoButton(true);
-    renderCalendar();
     setStep(1);
   }
 
@@ -387,11 +264,9 @@
     });
   }
 
-  els.yes.addEventListener("click", goDateStep);
-  els.dateBtn.addEventListener("click", goLetterStep);
+  els.yes.addEventListener("click", goLetterStep);
   els.replay.addEventListener("click", resetAll);
 
-  renderCalendar();
   bindNo();
   setStep(1);
 })();
