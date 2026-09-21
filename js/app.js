@@ -23,7 +23,6 @@
     letter: document.getElementById("letter"),
     replay: document.getElementById("btn-replay"),
     whatsapp: document.getElementById("btn-whatsapp"),
-    petals: document.getElementById("petals"),
     confetti: document.getElementById("confetti"),
   };
 
@@ -103,22 +102,6 @@
       width,
       height,
     };
-  }
-
-  function spawnPetals() {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-    els.petals.innerHTML = "";
-    for (let i = 0; i < 18; i += 1) {
-      const petal = document.createElement("span");
-      petal.className = i % 5 === 0 ? "petal is-heart" : "petal";
-      petal.style.left = `${Math.random() * 100}%`;
-      petal.style.setProperty("--drift", `${(Math.random() * 80 - 40).toFixed(0)}px`);
-      petal.style.animationDuration = `${9 + Math.random() * 8}s`;
-      petal.style.animationDelay = `${-Math.random() * 12}s`;
-      petal.style.opacity = String(0.4 + Math.random() * 0.4);
-      els.petals.appendChild(petal);
-    }
   }
 
   function setStep(step) {
@@ -408,7 +391,6 @@
   els.dateBtn.addEventListener("click", goLetterStep);
   els.replay.addEventListener("click", resetAll);
 
-  spawnPetals();
   renderCalendar();
   bindNo();
   setStep(1);
