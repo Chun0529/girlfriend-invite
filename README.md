@@ -2,7 +2,7 @@
 
 一個粉嫩、可愛、浪漫的單頁表白。沒有登入、沒有後端，打開就能玩。
 
-公開網址：<https://chun0529.github.io/girlfriend-invite/>
+公開網址：<https://mok0.syses.net/>
 
 現有的約會邀請站 [date-invite](https://chun0529.github.io/date-invite/) 是另一個專案，互不覆蓋。
 
